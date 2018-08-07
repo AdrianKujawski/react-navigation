@@ -3,6 +3,8 @@
 import NavigationActions from './NavigationActions';
 import invariant from './utils/invariant';
 
+let _debounce = true;
+
 export default function(navigation) {
   return {
     ...navigation,
@@ -21,9 +23,7 @@ export default function(navigation) {
     },
     navigate: (navigateTo, params, action) => {
       if (typeof navigateTo === 'string') {
-        return navigation.dispatch(
-          NavigationActions.navigate({ routeName: navigateTo, params, action })
-        );
+        return debounce(navigation.dispatch, [NavigationActions.navigate({ routeName: navigateTo, params, action })]);
       }
       invariant(
         typeof navigateTo === 'object',
@@ -37,7 +37,7 @@ export default function(navigation) {
         action == null,
         'Child action must not be provided to .navigate() when specifying an object'
       );
-      return navigation.dispatch(NavigationActions.navigate(navigateTo));
+      return debounce(navigation.dispatch, [NavigationActions.navigate(navigateTo)]);
     },
     pop: (n, params) =>
       navigation.dispatch(
@@ -86,4 +86,12 @@ export default function(navigation) {
         })
       ),
   };
+}
+
+function debounce(func, funcArgs = [], wait = 1000) {
+  if (_debounce) {
+    _debounce = false;
+    setTimeout(() => _debounce = true, wait);
+    return func.apply(this, funcArgs)
+  }
 }
