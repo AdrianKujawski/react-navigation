@@ -4,6 +4,7 @@ import NavigationActions from './NavigationActions';
 import invariant from './utils/invariant';
 
 let _debounce = true;
+const DrawerRoutesName = ['DrawerOpen', 'DrawerClose', 'DrawerToggle'];
 
 export default function(navigation) {
   return {
@@ -23,7 +24,9 @@ export default function(navigation) {
     },
     navigate: (navigateTo, params, action) => {
       if (typeof navigateTo === 'string') {
-        return debounce(navigation.dispatch, [NavigationActions.navigate({ routeName: navigateTo, params, action })]);
+        const isDrawerRoute = DrawerRoutesName.includes(navigateTo);
+        return isDrawerRoute ? navigation.dispatch(NavigationActions.navigate({ routeName: navigateTo, params, action }))
+        : debounce(navigation.dispatch, [NavigationActions.navigate({ routeName: navigateTo, params, action })]);
       }
       invariant(
         typeof navigateTo === 'object',
@@ -92,6 +95,6 @@ function debounce(func, funcArgs = [], wait = 1000) {
   if (_debounce) {
     _debounce = false;
     setTimeout(() => _debounce = true, wait);
-    return func.apply(this, funcArgs)
+    return func(...funcArgs)
   }
 }
